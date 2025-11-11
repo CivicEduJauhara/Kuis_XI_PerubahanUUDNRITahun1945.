@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latihan Soal UUD NRI 1945 (Amandemen)</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Konfigurasi Tailwind untuk tema Pink -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-pink': '#FF69B4', // Hot Pink
+                        'secondary-pink': '#F08080', // Light Coral
+                        'light-pink': '#FEE2E2', // Red-100 (for background)
+                        'accent-pink': '#DDA0DD', // Plum
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FEE2E2; /* light-pink */
+            color: #333;
+        }
+        .container {
+            max-width: 900px;
+        }
+        /* Styling untuk tombol pilihan jawaban */
+        .option-button {
+            transition: all 0.2s;
+            border: 2px solid #DDA0DD;
+            color: #333;
+            min-height: 56px;
+        }
+        .option-button:hover:not(:disabled) {
+            background-color: #FFC0CB; /* Pink */
+            transform: translateY(-2px);
+        }
+        .selected-option {
+            background-color: #FFC0CB;
+            border-color: #FF69B4;
+            transform: scale(1.02);
+        }
+        .correct-answer {
+            background-color: #90EE90; /* LightGreen for Correct */
+            border-color: #008000;
+        }
+        .wrong-answer {
+            background-color: #FF7F7F; /* Lighter Red for Wrong */
+            border-color: #FF0000;
+        }
+        /* Custom scrollbar for better aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #FEE2E2;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #FF69B4;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #DDA0DD;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="container bg-white shadow-xl rounded-2xl p-6 md:p-10 w-full">
+
+        <!-- Stage 1: Biodata Input -->
+        <div id="biodata-screen">
+            <h1 class="text-4xl font-black text-center mb-6 text-primary-pink">Selamat Datang di Latihan Soal Pancasila!</h1>
+
+            <!-- Afirmasi Menyambut -->
+            <div class="p-6 bg-light-pink border-l-4 border-primary-pink rounded-lg mb-8">
+                <p class="text-xl text-secondary-pink font-semibold">
+                    Halo, Calon Pemimpin Masa Depan! Hari ini adalah kesempatanmu untuk bersinar. <span class="font-bold">Siap menaklukkan tantangan UUD NRI 1945?</span> Mari kita mulai dengan semangat penuh dan senyum manis! 😊💖
+                </p>
+            </div>
+
+            <form id="biodata-form" class="space-y-6">
+                <div>
+                    <label for="nama" class="block text-lg font-medium text-gray-700 mb-2">Nama Lengkap:</label>
+                    <input type="text" id="nama" placeholder="Masukkan Nama Anda" class="w-full px-4 py-3 border border-accent-pink rounded-lg focus:ring-primary-pink focus:border-primary-pink" required>
+                </div>
+                <div>
+                    <label for="kelas" class="block text-lg font-medium text-gray-700 mb-2">Kelas:</label>
+                    <select id="kelas" class="w-full px-4 py-3 border border-accent-pink rounded-lg focus:ring-primary-pink focus:border-primary-pink" required>
+                        <option value="">Pilih Kelas Anda</option>
+                        <option value="XI Science 1">XI Science 1</option>
+                        <option value="XI Science 2">XI Science 2</option>
+                        <option value="XI Science 3">XI Science 3</option>
+                        <option value="XI Social 1">XI Social 1</option>
+                        <option value="XI Social 2">XI Social 2</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-primary-pink text-white font-bold text-xl rounded-lg shadow-md hover:bg-secondary-pink transition duration-300">
+                    Mulai Ujian
+                </button>
+            </form>
+        </div>
+
+        <!-- Stage 2: Quiz -->
+        <div id="quiz-screen" class="hidden">
+            <h2 class="text-3xl font-bold text-center mb-6 text-secondary-pink">Latihan Soal Amandemen UUD NRI 1945</h2>
+            <div class="text-center mb-4 p-3 bg-light-pink rounded-lg shadow-inner">
+                <p class="font-semibold text-primary-pink">Soal ke: <span id="current-q-index">1</span> / 30</p>
+            </div>
+
+            <div id="question-area" class="bg-gray-50 p-6 rounded-lg shadow-lg mb-6 min-h-[150px]">
+                <p id="question-text" class="text-xl font-medium text-gray-800"></p>
+                <p id="question-level" class="text-sm italic mt-2 text-accent-pink"></p>
+            </div>
+
+            <div id="options-area" class="space-y-4">
+                <!-- Opsi Jawaban akan dimuat di sini -->
+            </div>
+
+            <!-- Feedback Modal -->
+            <div id="feedback-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden z-50">
+                <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-md border-t-8 border-primary-pink">
+                    <h3 id="feedback-title" class="text-3xl font-black mb-4 text-center"></h3>
+                    <p id="feedback-message" class="text-gray-700 text-lg mb-6"></p>
+                    <button id="next-q-button" class="w-full py-3 bg-primary-pink text-white font-bold rounded-lg hover:bg-secondary-pink transition duration-300">
+                        Lanjut Soal Berikutnya
+                    </button>
+                </div>
+            </div>
+
+            <div id="navigation-area" class="flex justify-between mt-8">
+                <button id="prev-button" class="px-6 py-3 bg-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-400 transition duration-300 disabled:opacity-50" disabled>
+                    &larr; Sebelumnya
+                </button>
+                <button id="submit-button" class="px-6 py-3 bg-accent-pink text-white font-bold rounded-lg hover:bg-primary-pink transition duration-300" disabled>
+                    Pilih Jawaban
+                </button>
+            </div>
+        </div>
+
+        <!-- Stage 3: Results -->
+        <div id="results-screen" class="hidden text-center">
+            <h2 class="text-4xl font-bold mb-4 text-primary-pink">Hasil Latihanmu!</h2>
+
+            <div class="bg-light-pink p-8 rounded-xl shadow-lg mb-8">
+                <p class="text-2xl font-semibold mb-3">Nama: <span id="result-nama" class="text-secondary-pink"></span></p>
+                <p class="text-2xl font-semibold">Kelas: <span id="result-kelas" class="text-secondary-pink"></span></p>
+            </div>
+
+            <p class="text-5xl font-extrabold text-gray-800 mb-4">Total Skor (1-100):</p>
+            <p id="final-score" class="text-8xl font-black text-primary-pink mb-4"></p>
+            
+            <!-- Area untuk pesan kondisional -->
+            <div id="result-message" class="p-6 rounded-xl mb-8 border-l-4">
+                <!-- Pesan akan dimuat di sini -->
+            </div>
+
+            <div class="bg-gray-50 p-6 rounded-lg shadow-inner">
+                <h3 class="text-2xl font-bold text-accent-pink mb-4">Detail Jawaban</h3>
+                <div id="answer-details" class="text-left space-y-4 max-h-96 overflow-y-auto p-2">
+                    <!-- Detail Jawaban akan dimuat di sini -->
+                </div>
+            </div>
+
+            <button id="restart-button" class="mt-8 px-8 py-4 bg-primary-pink text-white font-bold text-xl rounded-lg shadow-md hover:bg-secondary-pink transition duration-300">
+                Ulangi Latihan
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Data Soal
+        const questionsData = [
+            // --- Kategori MUDAH (Easy) - 10 Soal ---
+            {
+                q: "Amandemen UUD NRI Tahun 1945 telah dilakukan sebanyak berapa kali hingga saat ini?",
+                options: ["Tiga kali", "Empat kali", "Lima kali", "Enam kali"],
+                answer: "Empat kali",
+                level: "Mudah",
+                feedback: "Amandemen UUD 1945 telah dilakukan sebanyak 4 kali, yaitu pada tahun 1999, 2000, 2001, dan 2002. Ini adalah tahapan penting reformasi."
+            },
+            {
+                q: "Lembaga negara yang memiliki kewenangan untuk mengubah dan menetapkan UUD adalah...",
+                options: ["Dewan Perwakilan Rakyat (DPR)", "Majelis Permusyawaratan Rakyat (MPR)", "Dewan Perwakilan Daerah (DPD)", "Presiden"],
+                answer: "Majelis Permusyawaratan Rakyat (MPR)",
+                level: "Mudah",
+                feedback: "Menurut Pasal 3 UUD NRI Tahun 1945, MPR berwenang mengubah dan menetapkan Undang-Undang Dasar. Ini adalah tugas konstitusional utama MPR."
+            },
+            {
+                q: "Salah satu kesepakatan dasar dalam Amandemen UUD NRI 1945 adalah tidak mengubah bagian...",
+                options: ["Batang Tubuh", "Aturan Tambahan", "Penjelasan", "Pembukaan"],
+                answer: "Pembukaan",
+                level: "Mudah",
+                feedback: "Pembukaan UUD 1945 tidak diubah karena memuat dasar negara Pancasila dan tujuan negara yang fundamental, yang merupakan konsensus bangsa."
+            },
+            {
+                q: "Amandemen UUD NRI 1945 yang keempat dan terakhir disahkan pada tahun...",
+                options: ["2000", "2001", "2002", "2003"],
+                answer: "2002",
+                level: "Mudah",
+                feedback: "Amandemen keempat disahkan pada Sidang Tahunan MPR tahun 2002, menandai selesainya proses amandemen UUD 1945."
+            },
+            {
+                q: "Sebelum amandemen, MPR adalah lembaga negara tertinggi. Setelah amandemen, status MPR berubah menjadi...",
+                options: ["Lembaga negara tertinggi", "Lembaga legislatif", "Lembaga yudikatif", "Lembaga negara setara dengan lembaga tinggi lainnya"],
+                answer: "Lembaga negara setara dengan lembaga tinggi lainnya",
+                level: "Mudah",
+                feedback: "Pasca-amandemen, terjadi pergeseran kekuasaan (checks and balances) di mana semua lembaga tinggi negara berkedudukan setara, yang merupakan perubahan signifikan."
+            },
+            {
+                q: "Perubahan terhadap masa jabatan Presiden dan Wakil Presiden dari 'tidak terbatas' menjadi 5 tahun dan dapat dipilih kembali hanya untuk satu kali masa jabatan tertuang dalam Pasal...",
+                options: ["Pasal 6A", "Pasal 7", "Pasal 8", "Pasal 9"],
+                answer: "Pasal 7",
+                level: "Mudah",
+                feedback: "Pasal 7 mengatur batasan masa jabatan Presiden dan Wakil Presiden maksimal dua periode, yang merupakan hasil Amandemen I."
+            },
+            {
+                q: "Dibentuknya Mahkamah Konstitusi (MK) merupakan salah satu hasil amandemen UUD 1945. MK dibentuk berdasarkan amandemen ke...",
+                options: ["Satu", "Dua", "Tiga", "Empat"],
+                answer: "Tiga",
+                level: "Mudah",
+                feedback: "Pembentukan MK dan Komisi Yudisial (KY) merupakan hasil amandemen ketiga UUD 1945, memperkuat kekuasaan yudikatif."
+            },
+            {
+                q: "Salah satu tujuan utama dilakukannya amandemen UUD NRI 1945 adalah...",
+                options: ["Memperkuat kekuasaan eksekutif", "Mengurangi peran DPR", "Menyempurnakan aturan dasar negara dan tatanan bernegara", "Mengembalikan Pancasila sebagai satu-satunya asas"],
+                answer: "Menyempurnakan aturan dasar negara dan tatanan bernegara",
+                level: "Mudah",
+                feedback: "Tujuan utama amandemen adalah menyempurnakan tatanan bernegara agar sesuai dengan tuntutan reformasi dan demokrasi."
+            },
+            {
+                q: "Pengakuan terhadap wilayah Negara Kesatuan Republik Indonesia (NKRI) tertuang dalam Pasal...",
+                options: ["Pasal 1 Ayat (1)", "Pasal 18", "Pasal 25A", "Pasal 27"],
+                answer: "Pasal 25A",
+                level: "Mudah",
+                feedback: "Pasal 25A mengatur tentang Wilayah Negara Kesatuan Republik Indonesia, ditambahkan pada Amandemen IV sebagai pengukuhan kedaulatan wilayah."
+            },
+            {
+                q: "Amandemen pertama UUD NRI 1945 dilakukan pada tahun...",
+                options: ["1998", "1999", "2000", "2001"],
+                answer: "1999",
+                level: "Mudah",
+                feedback: "Amandemen I dilaksanakan pada Sidang Umum MPR Tahun 1999, yang fokus pada pembatasan kekuasaan Presiden."
+            },
+
+            // --- Kategori SEDANG (Medium/Penerapan) - 10 Soal ---
+            {
+                q: "Sebelum amandemen, Presiden memiliki hak prerogatif dan legislatif yang sangat besar. Setelah amandemen, mekanisme 'check and balance' diperkuat. Salah satu penerapan nyatanya adalah...",
+                options: ["Presiden dipilih langsung oleh rakyat", "MPR menjadi lembaga legislatif dua kamar", "Pembubaran Dewan Pertimbangan Agung (DPA)", "DPR diberi hak untuk mengajukan usul pemberhentian Presiden"],
+                answer: "Presiden dipilih langsung oleh rakyat",
+                level: "Sedang",
+                feedback: "Pemilihan Presiden langsung oleh rakyat (Pasal 6A) merupakan bentuk penguatan kontrol rakyat dan pemisahan kekuasaan dari MPR. Walaupun DPR juga punya hak *impeachment*, pemilihan langsung adalah perubahan paling mendasar untuk memperkuat 'check and balance' dalam sistem presidensial."
+            },
+            {
+                q: "Perubahan mendasar dalam sistem pemerintahan yang terjadi pasca-amandemen adalah pergeseran dari supremasi MPR menjadi kedaulatan rakyat yang dilaksanakan menurut UUD. Hal ini memiliki implikasi bahwa...",
+                options: ["Kekuasaan MPR menjadi absolut dan tidak terbatas", "Semua lembaga tinggi negara bertanggung jawab kepada MPR", "Setiap lembaga tinggi negara melaksanakan kewenangannya secara mandiri sesuai UUD", "Presiden tidak dapat diberhentikan di tengah masa jabatan"],
+                answer: "Setiap lembaga tinggi negara melaksanakan kewenangannya secara mandiri sesuai UUD",
+                level: "Sedang",
+                feedback: "Perubahan status MPR dari lembaga tertinggi menjadi lembaga tinggi yang setara, menegaskan bahwa kedaulatan rakyat dijalankan oleh lembaga-lembaga negara (eksekutif, legislatif, yudikatif) sesuai fungsi masing-masing, bukan di bawah satu lembaga."
+            },
+            {
+                q: "Hak asasi manusia (HAM) diatur secara rinci dan komprehensif dalam Bab XA pasca-amandemen. Penerapan dari perubahan ini dalam kehidupan sehari-hari adalah...",
+                options: ["Pemerintah berhak membatasi setiap hak warga negara", "Negara wajib menjamin hak warga negara untuk bebas berserikat dan berkumpul", "Hak untuk hidup tidak dapat dikurangi dalam keadaan apapun", "Setiap warga negara wajib menjalankan perintah agama secara ketat"],
+                answer: "Negara wajib menjamin hak warga negara untuk bebas berserikat dan berkumpul",
+                level: "Sedang",
+                feedback: "Bab XA Pasal 28E Ayat (3) secara eksplisit menjamin kebebasan berserikat, berkumpul, dan mengeluarkan pendapat, yang merupakan implementasi nyata perlindungan HAM pasca-amandemen."
+            },
+            {
+                q: "Amandemen UUD 1945 memperkenalkan sistem parlemen dua kamar, yaitu DPR dan DPD. Fungsi utama DPD dalam sistem ini adalah...",
+                options: ["Menetapkan APBN bersama Presiden", "Mengawasi pelaksanaan undang-undang", "Mengajukan usul rancangan undang-undang yang berkaitan dengan daerah", "Mengangkat dan memberhentikan Hakim Agung"],
+                answer: "Mengajukan usul rancangan undang-undang yang berkaitan dengan daerah",
+                level: "Sedang",
+                feedback: "DPD memiliki fungsi representasi daerah dan berhak mengajukan RUU yang berkaitan dengan otonomi daerah dan hal-hal yang menyangkut kepentingan daerah. Ini merupakan perbandingan DPR (legislatif nasional) dan DPD (representasi daerah)."
+            },
+            {
+                q: "Dalam Bab tentang pendidikan pasca-amandemen (Pasal 31), pemerintah diwajibkan mengalokasikan anggaran pendidikan sekurang-kurangnya 20% dari APBN/APBD. Hal ini merupakan penerapan dari prinsip...",
+                options: ["Kedaulatan rakyat", "Desentralisasi", "Jaminan hak warga negara atas pendidikan", "Pembebasan biaya pendidikan"],
+                answer: "Jaminan hak warga negara atas pendidikan",
+                level: "Sedang",
+                feedback: "Kewajiban alokasi 20% anggaran (Pasal 31 Ayat 4) adalah implementasi konkret dari tanggung jawab negara dalam menjamin terpenuhinya hak setiap warga negara untuk mendapatkan pendidikan yang layak."
+            },
+            {
+                q: "Sebelum amandemen, mekanisme pengangkatan hakim berada di tangan Presiden. Pasca-amandemen, lembaga baru dibentuk untuk menjaga kehormatan dan perilaku hakim. Lembaga tersebut adalah...",
+                options: ["Komisi Pemberantasan Korupsi (KPK)", "Komisi Nasional Hak Asasi Manusia (Komnas HAM)", "Komisi Yudisial (KY)", "Dewan Pertimbangan Presiden (Wantimpres)"],
+                answer: "Komisi Yudisial (KY)",
+                level: "Sedang",
+                feedback: "Komisi Yudisial (KY) dibentuk berdasarkan Amandemen Ketiga (Pasal 24B) untuk mengawasi perilaku hakim dan mengusulkan pengangkatan Hakim Agung, demi menjaga independensi kekuasaan kehakiman."
+            },
+            {
+                q: "Prinsip pemisahan kekuasaan diperkuat dengan penegasan kekuasaan kehakiman yang merdeka untuk menyelenggarakan peradilan guna menegakkan hukum dan keadilan. Penerapan prinsip ini terlihat jelas pada...",
+                options: ["Peran DPR yang dominan dalam pembentukan undang-undang", "Tidak adanya intervensi dari kekuasaan eksekutif dan legislatif terhadap lembaga peradilan", "Pengangkatan Hakim Agung oleh Presiden", "Pembentukan Mahkamah Agung sebagai lembaga tertinggi negara"],
+                answer: "Tidak adanya intervensi dari kekuasaan eksekutif dan legislatif terhadap lembaga peradilan",
+                level: "Sedang",
+                feedback: "Kekuasaan kehakiman yang merdeka (Pasal 24) berarti bebas dari pengaruh kekuasaan manapun, termasuk eksekutif dan legislatif, untuk menjamin penegakan hukum yang adil."
+            },
+            {
+                q: "Salah satu tahapan penting dalam amandemen UUD adalah usulan perubahan pasal. Menurut UUD NRI 1945, usul perubahan pasal diajukan oleh sekurang-kurangnya berapa anggota MPR?",
+                options: ["1/2 dari jumlah anggota", "1/3 dari jumlah anggota", "1/4 dari jumlah anggota", "2/3 dari jumlah anggota"],
+                answer: "1/3 dari jumlah anggota",
+                level: "Sedang",
+                feedback: "Usul perubahan diajukan oleh sekurang-kurangnya 1/3 dari jumlah anggota MPR dan harus diuraikan secara tertulis. Ini adalah tahap awal formal amandemen."
+            },
+            {
+                q: "Sebelum amandemen, DPR memiliki hak inisiatif, namun UU yang telah disahkan hanya dapat diuji oleh MPR. Pasca-amandemen, lembaga yang berwenang menguji UU terhadap UUD adalah...",
+                options: ["Mahkamah Agung", "Mahkamah Konstitusi", "Komisi Yudisial", "Dewan Perwakilan Daerah"],
+                answer: "Mahkamah Konstitusi",
+                level: "Sedang",
+                feedback: "Mahkamah Konstitusi (MK) memiliki kewenangan untuk menguji undang-undang terhadap Undang-Undang Dasar (judicial review). Ini adalah perubahan signifikan dalam tatanan hukum."
+            },
+            {
+                q: "Pengambilan keputusan perubahan pasal-pasal UUD NRI 1945 oleh MPR harus disetujui oleh sekurang-kurangnya berapa anggota MPR?",
+                options: ["Mayoritas anggota yang hadir", "2/3 dari anggota yang hadir", "50% ditambah 1 dari seluruh anggota", "2/3 dari seluruh anggota"],
+                answer: "50% ditambah 1 dari seluruh anggota",
+                level: "Sedang",
+                feedback: "Perubahan UUD harus disetujui oleh sekurang-kurangnya 50% ditambah satu dari seluruh anggota MPR. Ini adalah syarat mutlak tahap akhir pengesahan."
+            },
+
+            // --- Kategori SULIT (Difficult/Studi Kasus) - 10 Soal ---
+            {
+                q: "Studi Kasus: Setelah amandemen, Presiden X dituduh melakukan pelanggaran hukum berat oleh DPR. Jika DPR mengajukan permintaan pemberhentian kepada MPR, langkah selanjutnya yang wajib dilakukan oleh MPR sebelum mengadakan sidang pemberhentian adalah...",
+                options: ["Segera mengadakan Sidang Istimewa untuk memutuskan pemberhentian", "Meminta pendapat dari Mahkamah Agung", "Meminta pendapat dari Mahkamah Konstitusi", "Melakukan pemilu ulang untuk mencari Presiden baru"],
+                answer: "Meminta pendapat dari Mahkamah Konstitusi",
+                level: "Sulit",
+                feedback: "Menurut Pasal 7B, jika DPR mengusulkan pemberhentian, MPR wajib meminta putusan dari Mahkamah Konstitusi (MK) terlebih dahulu untuk membuktikan dugaan pelanggaran hukum. Putusan MK mengikat MPR, menunjukkan mekanisme 'check and balance' yang rumit."
+            },
+            {
+                q: "Analisis: UUD 1945 sebelum amandemen menyatakan kedaulatan ada di tangan rakyat dan dilaksanakan sepenuhnya oleh MPR. Setelah amandemen, kedaulatan ada di tangan rakyat dan dilaksanakan menurut UUD. Perubahan ini menunjukkan transisi Indonesia dari negara yang menganut sistem...",
+                options: ["Trias Politika ke sistem Parlemen", "Kedaulatan Rakyat (melalui MPR) ke Kedaulatan Hukum", "Supremasi Legislatif (MPR) ke Keseimbangan Kekuasaan (Check and Balance)", "Sentralistik ke Desentralisasi"],
+                answer: "Supremasi Legislatif (MPR) ke Keseimbangan Kekuasaan (Check and Balance)",
+                level: "Sulit",
+                feedback: "Sebelum amandemen, MPR sangat dominan (supremasi). Pasca-amandemen, kedaulatan dilaksanakan oleh berbagai lembaga tinggi negara yang setara, mencerminkan penerapan sistem 'check and balance' yang lebih jelas untuk mencegah otoritarianisme."
+            },
+            {
+                q: "Perbandingan: Sebelum amandemen, Presiden dan Wakil Presiden dipilih oleh MPR. Pasca-amandemen, Presiden dan Wakil Presiden dipilih langsung oleh rakyat. Dampak paling signifikan dari perubahan ini terhadap sistem politik Indonesia adalah...",
+                options: ["Meningkatnya peran DPD dalam penetapan UU", "Melemahnya posisi partai politik", "Legitimasi kekuasaan eksekutif (Presiden) menjadi lebih kuat dan langsung dari rakyat", "Semua lembaga negara bertanggung jawab kepada rakyat secara langsung"],
+                answer: "Legitimasi kekuasaan eksekutif (Presiden) menjadi lebih kuat dan langsung dari rakyat",
+                level: "Sulit",
+                feedback: "Pemilihan langsung memberikan legitimasi yang kuat kepada Presiden, karena ia tidak lagi bertanggung jawab kepada MPR, melainkan kepada rakyat secara langsung. Ini memperkuat sistem presidensial sejati."
+            },
+            {
+                q: "Studi Kasus: Anggaran pendapatan dan belanja negara (APBN) diusulkan oleh Presiden, dibahas bersama DPR, dan ditetapkan dengan undang-undang. Apabila DPR tidak menyetujui RAPBN yang diusulkan, konsekuensi yang terjadi sesuai UUD NRI 1945 pasca-amandemen adalah...",
+                options: ["Presiden wajib membubarkan DPR", "Pemerintah harus menggunakan APBN tahun yang lalu", "Presiden dapat mengeluarkan Perppu tentang APBN", "RAPBN tahun berikutnya akan diajukan ulang"],
+                answer: "Pemerintah harus menggunakan APBN tahun yang lalu",
+                level: "Sulit",
+                feedback: "Pasal 23 Ayat (3) UUD 1945 menyatakan, 'Apabila Dewan Perwakilan Rakyat tidak menyetujui rancangan anggaran pendapatan dan belanja negara yang diusulkan oleh Presiden, Pemerintah menjalankan Anggaran Pendapatan dan Belanja Negara tahun yang lalu.' Ini menjamin keberlanjutan pemerintahan."
+            },
+            {
+                q: "Analisis: Dalam Bab XA tentang HAM, UUD 1945 pasca-amandemen menyatakan bahwa pembatasan hak dan kebebasan hanya boleh ditetapkan dengan undang-undang. Prinsip ini sangat penting untuk mencegah...",
+                options: ["Kekuasaan MPR yang absolut", "Intervensi lembaga yudikatif", "Pelanggaran HAM oleh kebijakan yang bersifat sementara/diskresional dari pemerintah", "Penyalahgunaan wewenang oleh DPR"],
+                answer: "Pelanggaran HAM oleh kebijakan yang bersifat sementara/diskresional dari pemerintah",
+                level: "Sulit",
+                feedback: "Pembatasan HAM harus melalui UU (Pasal 28J) bertujuan menjamin bahwa hak dasar warga negara hanya dapat dibatasi oleh produk hukum yang melibatkan parlemen, sehingga mencegah pembatasan yang sewenang-wenang hanya melalui Keputusan Presiden atau Peraturan Pemerintah."
+            },
+            {
+                q: "Perbandingan: Sebelum amandemen, pertanggungjawaban Presiden hanya kepada MPR. Setelah amandemen, Presiden bertanggung jawab kepada rakyat dan dapat diberhentikan melalui mekanisme *impeachment*. Perubahan ini mengindikasikan bahwa...",
+                options: ["Sistem presidensial di Indonesia menjadi murni", "Telah terjadi pembagian kekuasaan secara horizontal dan vertikal", "Presiden dapat sewaktu-waktu dicopot tanpa proses hukum", "Sistem presidensial Indonesia diperkuat dengan adanya mekanisme akuntabilitas yang ketat"],
+                answer: "Sistem presidensial Indonesia diperkuat dengan adanya mekanisme akuntabilitas yang ketat",
+                level: "Sulit",
+                feedback: "Amandemen mempertahankan sistem presidensial, tetapi menambah mekanisme *impeachment* melalui DPR dan MK. Ini menguatkan akuntabilitas Presiden tanpa mengubah total sistem menjadi parlementer."
+            },
+            {
+                q: "Amandemen UUD 1945 menghapus Dewan Pertimbangan Agung (DPA) dan menggantinya dengan Dewan Pertimbangan Presiden (DPP/Wantimpres). Perbedaan mendasar antara kedua lembaga ini adalah...",
+                options: ["DPA adalah lembaga tinggi negara, DPP adalah lembaga non-struktural", "DPA memberikan pertimbangan wajib, DPP hanya pertimbangan jika diminta", "DPA bersifat wajib memberikan nasihat, DPP tidak wajib", "DPA memiliki kekuasaan eksekutif, DPP hanya penasihat"],
+                answer: "DPA bersifat wajib memberikan nasihat, DPP tidak wajib",
+                level: "Sulit",
+                feedback: "Pasal 16 pasca-amandemen menyatakan Presiden membentuk suatu dewan pertimbangan yang bertugas memberikan nasihat dan pertimbangan kepada Presiden. Dalam UU tentang Wantimpres, pemberian nasihat tidak wajib dan tidak mengikat, berbeda dengan DPA yang nasihatnya wajib didengar."
+            },
+            {
+                q: "Analisis: Jika MPR akan mengubah isi Pembukaan UUD NRI 1945, langkah ini akan melanggar kesepakatan dasar amandemen. Kesepakatan dasar ini menunjukkan bahwa amandemen UUD 1945 bertujuan untuk...",
+                options: ["Mengubah negara kesatuan menjadi negara serikat", "Mengembalikan UUD 1945 ke naskah asli tanpa perubahan", "Menyempurnakan dan menguatkan kerangka dasar negara tanpa mengubah fondasi filosofis", "Meniadakan lembaga negara yang tidak efisien"],
+                answer: "Menyempurnakan dan menguatkan kerangka dasar negara tanpa mengubah fondasi filosofis",
+                level: "Sulit",
+                feedback: "Tidak diubahnya Pembukaan adalah wujud komitmen untuk mempertahankan fondasi filosofis negara, termasuk Pancasila dan bentuk NKRI yang terkandung di dalamnya. Amandemen hanya berfokus pada Batang Tubuh."
+            },
+            {
+                q: "Perbandingan: Sebelum amandemen, pertanggungjawaban Presiden hanya kepada MPR. Setelah amandemen, pertanggungjawaban Presiden sepenuhnya kepada rakyat. Hal ini secara langsung menghilangkan salah satu kekuasaan MPR, yaitu...",
+                options: ["Kekuasaan untuk melantik Presiden", "Kekuasaan untuk menetapkan Garis-Garis Besar Haluan Negara (GBHN)", "Kekuasaan untuk mengubah dan menetapkan UUD", "Kekuasaan untuk memilih anggota DPR"],
+                answer: "Kekuasaan untuk menetapkan Garis-Garis Besar Haluan Negara (GBHN)",
+                level: "Sulit",
+                feedback: "Dengan hilangnya MPR sebagai lembaga tertinggi dan Presiden yang bertanggung jawab langsung kepada rakyat, GBHN sebagai pedoman pelaksanaan mandat yang diberikan MPR menjadi tidak relevan dan dihapuskan. Ini adalah perubahan signifikan dalam tatanan kebijakan nasional."
+            },
+            {
+                q: "Tahapan pertama dalam proses amandemen UUD NRI 1945, sebelum diusulkan, adalah...",
+                options: ["Pengesahan naskah oleh Presiden", "Pengkajian oleh Komisi Konstitusi MPR", "Pembentukan Panitia Ad Hoc untuk menyusun draf", "Sidang Pleno MPR untuk membahas usulan"],
+                answer: "Pengkajian oleh Komisi Konstitusi MPR",
+                level: "Sulit",
+                feedback: "Secara praktis, proses amandemen melibatkan pengkajian mendalam terhadap pasal-pasal yang akan diubah oleh Badan Pekerja/Komisi Konstitusi MPR, sebelum usulan resmi diajukan dan dibahas dalam sidang paripurna MPR. Pengkajian adalah fondasi tahapan amandemen."
+            },
+        ];
+
+        let userName = '';
+        let userClass = '';
+        let currentQuestionIndex = 0;
+        let userAnswers = Array(questionsData.length).fill(null);
+        let score = 0;
+
+        const biodataScreen = document.getElementById('biodata-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const resultsScreen = document.getElementById('results-screen');
+        const biodataForm = document.getElementById('biodata-form');
+        const currentQIndexEl = document.getElementById('current-q-index');
+        const questionTextEl = document.getElementById('question-text');
+        const questionLevelEl = document.getElementById('question-level');
+        const optionsArea = document.getElementById('options-area');
+        const prevButton = document.getElementById('prev-button');
+        const submitButton = document.getElementById('submit-button');
+        const nextQButton = document.getElementById('next-q-button');
+        const feedbackModal = document.getElementById('feedback-modal');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const restartButton = document.getElementById('restart-button');
+
+        // --- Fungsi Utility ---
+        function shuffleArray(array) {
+            // Function untuk mengacak urutan array (untuk randomisasi soal)
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Kumpulkan semua soal dan acak urutan.
+        shuffleArray(questionsData);
+
+        // --- Logika Navigasi Halaman ---
+
+        biodataForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            userName = document.getElementById('nama').value;
+            userClass = document.getElementById('kelas').value;
+
+            biodataScreen.classList.add('hidden');
+            quizScreen.classList.remove('hidden');
+            loadQuestion(0);
+        });
+
+        // --- Logika Quiz ---
+
+        function loadQuestion(index) {
+            currentQuestionIndex = index;
+            const qData = questionsData[index];
+
+            currentQIndexEl.textContent = index + 1;
+            questionTextEl.innerHTML = (index + 1) + ". " + qData.q;
+            questionLevelEl.textContent = `Kategori: ${qData.level}`;
+            optionsArea.innerHTML = ''; // Hapus opsi sebelumnya
+
+            const shuffledOptions = [...qData.options];
+
+            shuffledOptions.forEach((option, i) => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = `option-button w-full text-left px-5 py-3 rounded-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-pink`;
+
+                button.addEventListener('click', () => selectAnswer(index, option, button));
+                optionsArea.appendChild(button);
+            });
+
+            // Tampilkan jawaban yang sudah dipilih jika ada
+            if (userAnswers[index] !== null) {
+                const selectedOptionText = userAnswers[index].selectedOption;
+                Array.from(optionsArea.children).forEach(button => {
+                    if (button.textContent === selectedOptionText) {
+                        button.classList.add('selected-option');
+                    }
+                    // Nonaktifkan tombol karena sudah dijawab/disubmit
+                    button.disabled = true;
+                });
+                submitButton.disabled = true; 
+            } else {
+                submitButton.disabled = true; // Belum ada jawaban yang dipilih
+            }
+
+            // Atur tombol navigasi
+            prevButton.disabled = index === 0;
+            submitButton.textContent = (index === questionsData.length - 1) ? 'Selesai & Lihat Hasil' : 'Pilih Jawaban';
+        }
+
+        function selectAnswer(qIndex, selectedOption, selectedButton) {
+            // Hapus status 'selected' dari semua opsi
+            Array.from(optionsArea.children).forEach(btn => {
+                btn.classList.remove('selected-option');
+                btn.disabled = false; // Re-enable if needed for changing selection
+            });
+
+            // Set status 'selected' pada tombol yang baru dipilih
+            selectedButton.classList.add('selected-option');
+
+            // Simpan jawaban sementara di userAnswers
+            userAnswers[qIndex] = { selectedOption: selectedOption, isCorrect: null, feedback: null };
+
+            // Aktifkan tombol submit
+            submitButton.disabled = false;
+            submitButton.onclick = () => checkAndSubmitAnswer(qIndex, selectedOption);
+        }
+
+        function checkAndSubmitAnswer(qIndex, selectedOption) {
+            const qData = questionsData[qIndex];
+            const isCorrect = selectedOption === qData.answer;
+
+            // Simpan hasil akhir (termasuk status benar/salah dan feedback)
+            userAnswers[qIndex].isCorrect = isCorrect;
+            userAnswers[qIndex].feedback = qData.feedback;
+
+            // Nonaktifkan semua tombol setelah submit
+            Array.from(optionsArea.children).forEach(btn => btn.disabled = true);
+            submitButton.disabled = true;
+
+            // Tampilkan modal feedback
+            showFeedbackModal(isCorrect, qData.feedback);
+        }
+
+        function showFeedbackModal(isCorrect, feedback) {
+            const qData = questionsData[currentQuestionIndex];
+            const selectedOptionText = userAnswers[currentQuestionIndex].selectedOption;
+            let correctOptionText = qData.answer;
+
+            if (isCorrect) {
+                // Afirmasi Positif & Apresiasi
+                feedbackTitle.textContent = "Luar Biasa! Kamu Keren! ❤️ ⭐️"; 
+                feedbackTitle.classList.remove('text-secondary-pink');
+                feedbackTitle.classList.add('text-green-600');
+                feedbackMessage.innerHTML = `<span class="block text-xl font-bold mb-4">🙌 Selamat! Pilihanmu Tepat! 🙌</span>
+                    <p class="text-lg">Anda telah menunjukkan pemahaman yang kuat tentang Amandemen UUD NRI 1945.</p>
+                    <p class="text-sm mt-4 font-semibold text-gray-600">Reinforcement: ${feedback}</p>`;
+            } else {
+                // Penjelasan Jawaban Salah
+                feedbackTitle.textContent = "Tetap Semangat! 😢";
+                feedbackTitle.classList.remove('text-green-600');
+                feedbackTitle.classList.add('text-secondary-pink');
+                feedbackMessage.innerHTML = `<span class="block text-xl font-bold mb-4">Jawaban Anda belum tepat. Jangan menyerah!</span>
+                    <p class="text-lg mb-2">Jawaban Anda: <span class="font-bold text-secondary-pink">${selectedOptionText}</span></p>
+                    <p class="text-lg mb-4">Jawaban Benar: <span class="font-black text-green-700">${correctOptionText}</span></p>
+                    <p class="text-lg font-bold text-secondary-pink">Penjelasan Lengkap:</p>
+                    <p class="text-base">${feedback}</p>`; // Penjelasan rinci untuk jawaban salah
+            }
+
+            // Atur tombol Lanjut Soal Berikutnya
+            if (currentQuestionIndex < questionsData.length - 1) {
+                nextQButton.textContent = 'Lanjut Soal Berikutnya';
+                nextQButton.onclick = () => {
+                    feedbackModal.classList.add('hidden');
+                    loadQuestion(currentQuestionIndex + 1);
+                };
+            } else {
+                nextQButton.textContent = 'Selesai & Lihat Hasil';
+                nextQButton.onclick = () => {
+                    feedbackModal.classList.add('hidden');
+                    showResults();
+                };
+            }
+
+            feedbackModal.classList.remove('hidden');
+        }
+
+        prevButton.addEventListener('click', () => {
+            if (currentQuestionIndex > 0) {
+                loadQuestion(currentQuestionIndex - 1);
+            }
+        });
+
+        // --- Logika Hasil ---
+
+        function showResults() {
+            quizScreen.classList.add('hidden');
+            resultsScreen.classList.remove('hidden');
+
+            // Hitung Skor
+            score = 0;
+            userAnswers.forEach(ans => {
+                if (ans && ans.isCorrect) {
+                    score++;
+                }
+            });
+
+            // Hitung skor 1-100 (persentase)
+            const finalScorePercentage = (score / questionsData.length) * 100;
+            
+            document.getElementById('result-nama').textContent = userName;
+            document.getElementById('result-kelas').textContent = userClass;
+            document.getElementById('final-score').textContent = `${finalScorePercentage.toFixed(0)}`; // Tampilkan skor 1-100
+
+            // Tentukan Pesan Kondisional
+            const resultMessageEl = document.getElementById('result-message');
+            let message = '';
+            let messageClass = '';
+
+            if (finalScorePercentage < 75) {
+                // Skor < 75: Penyemangat untuk mengulang
+                messageClass = 'bg-red-100 border-l-4 border-secondary-pink text-secondary-pink';
+                message = `
+                    <span class="text-3xl font-bold block mb-3">Ayo, Coba Lagi! 💪</span>
+                    <p class="text-xl">Skor yang luar biasa adalah 75 ke atas. Kami tahu kamu bisa lebih baik! Ulangi latihan ini untuk menguasai materi UUD NRI 1945. Semangat terus! 🔥</p>
+                `;
+            } else if (finalScorePercentage >= 75 && finalScorePercentage < 90) {
+                // Skor 75-89: Apresiasi
+                messageClass = 'bg-yellow-100 border-l-4 border-orange-500 text-orange-600';
+                message = `
+                    <span class="text-3xl font-bold block mb-3">Keren! Hasil yang Memuaskan! 👏</span>
+                    <p class="text-xl">Anda memiliki pemahaman yang solid. Pertahankan! Sedikit lagi menuju kesempurnaan. Tingkatkan fokus pada area yang belum dikuasai ya! ✨</p>
+                `;
+            } else { // 90 - 100
+                // Skor 90-100: Apresiasi luar biasa
+                messageClass = 'bg-green-100 border-l-4 border-green-500 text-green-600';
+                message = `
+                    <span class="text-3xl font-bold block mb-3">FANTASTIS! SKOR SEMPURNA! 🏆💯</span>
+                    <p class="text-xl">Anda adalah ahli Amandemen UUD NRI 1945. Pencapaian yang sungguh membanggakan! Latihan ini telah Anda taklukkan dengan sempurna! 🌟</p>
+                `;
+            }
+            
+            resultMessageEl.className = `p-6 rounded-xl mb-8 text-left ${messageClass}`;
+            resultMessageEl.innerHTML = message;
+
+
+            // Tampilkan Detail Jawaban
+            const detailsArea = document.getElementById('answer-details');
+            detailsArea.innerHTML = '';
+
+            questionsData.forEach((qData, index) => {
+                const answer = userAnswers[index];
+                const isCorrect = answer && answer.isCorrect;
+                const statusClass = isCorrect ? 'border-green-500 bg-green-50' : 'border-secondary-pink bg-light-pink';
+                const statusText = isCorrect ? 'BENAR' : 'SALAH';
+                const statusTextColor = isCorrect ? 'text-green-600' : 'text-secondary-pink';
+
+                const detailItem = document.createElement('div');
+                detailItem.className = `p-4 border-2 rounded-lg ${statusClass}`;
+                detailItem.innerHTML = `
+                    <p class="font-bold text-gray-800">Soal ${index + 1} (${qData.level})</p>
+                    <p class="mb-2 italic text-sm text-gray-600">${qData.q}</p>
+                    <p class="font-semibold ${statusTextColor}">Status: ${statusText}</p>
+                    <p class="text-sm">Jawaban Anda: <span class="font-medium">${answer ? answer.selectedOption : 'Tidak Dijawab'}</span></p>
+                    <p class="text-sm">Jawaban Benar: <span class="font-medium text-green-700">${qData.answer}</span></p>
+                `;
+                detailsArea.appendChild(detailItem);
+            });
+        }
+
+        restartButton.addEventListener('click', () => {
+            // Reset state
+            userName = '';
+            userClass = '';
+            currentQuestionIndex = 0;
+            userAnswers = Array(questionsData.length).fill(null);
+            score = 0;
+            shuffleArray(questionsData); // Acak ulang soal
+            document.getElementById('nama').value = '';
+            document.getElementById('kelas').value = '';
+
+            // Tampilkan halaman biodata
+            resultsScreen.classList.add('hidden');
+            biodataScreen.classList.remove('hidden');
+        });
+
+    </script>
+</body>
+</html>
