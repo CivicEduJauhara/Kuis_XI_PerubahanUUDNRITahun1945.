@@ -142,6 +142,10 @@
                 <button id="submit-button" class="px-6 py-3 bg-accent-pink text-white font-bold rounded-lg hover:bg-primary-pink transition duration-300" disabled>
                     Pilih Jawaban
                 </button>
+                <!-- Tombol baru untuk Lanjut ke Soal Belum Dikerjakan -->
+                <button id="next-unanswered-button" class="px-6 py-3 bg-accent-pink text-white font-bold rounded-lg hover:bg-primary-pink transition duration-300 hidden">
+                    Lanjut ke Soal Belum Dikerjakan →
+                </button>
             </div>
         </div>
 
@@ -411,6 +415,7 @@
         const optionsArea = document.getElementById('options-area');
         const prevButton = document.getElementById('prev-button');
         const submitButton = document.getElementById('submit-button');
+        const nextUnansweredButton = document.getElementById('next-unanswered-button'); // Tombol baru
         const nextQButton = document.getElementById('next-q-button');
         const feedbackModal = document.getElementById('feedback-modal');
         const feedbackTitle = document.getElementById('feedback-title');
@@ -424,6 +429,11 @@
                 const j = Math.floor(Math.random() * (i + 1));
                 [array[i], array[j]] = [array[j], array[i]];
             }
+        }
+
+        // Fungsi untuk mencari indeks soal yang belum dijawab
+        function findNextUnansweredQuestionIndex() {
+            return userAnswers.findIndex(answer => answer === null);
         }
 
         // Kumpulkan semua soal dan acak urutan.
@@ -473,21 +483,52 @@
                     // Nonaktifkan tombol karena sudah dijawab/disubmit
                     button.disabled = true;
                 });
-                submitButton.disabled = true; 
             } else {
-                submitButton.disabled = true; // Belum ada jawaban yang dipilih
+                // Pastikan submitButton dinonaktifkan jika belum ada pilihan
+                submitButton.disabled = true; 
             }
 
-            // Atur tombol navigasi
+            // --- Logic untuk Tombol Aksi Navigasi ---
             prevButton.disabled = index === 0;
-            submitButton.textContent = (index === questionsData.length - 1) ? 'Selesai & Lihat Hasil' : 'Pilih Jawaban';
+            const isAnswered = userAnswers[index] !== null;
+            const nextUnansweredIndex = findNextUnansweredQuestionIndex();
+
+            if (isAnswered) {
+                // JIKA SOAL SUDAH DIJAWAB
+                submitButton.classList.add('hidden');
+                nextUnansweredButton.classList.remove('hidden');
+                
+                // Reset styling
+                nextUnansweredButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                nextUnansweredButton.classList.add('bg-accent-pink', 'hover:bg-primary-pink');
+
+                if (nextUnansweredIndex === -1) {
+                    // Semua pertanyaan terjawab, tampilkan tombol lihat hasil
+                    nextUnansweredButton.textContent = 'Lihat Hasil Akhir 🏆';
+                    nextUnansweredButton.onclick = showResults;
+                    nextUnansweredButton.classList.remove('bg-accent-pink', 'hover:bg-primary-pink');
+                    nextUnansweredButton.classList.add('bg-green-600', 'hover:bg-green-700');
+                } else {
+                    // Ada soal yang belum terjawab, tampilkan tombol lanjut ke soal belum dikerjakan
+                    nextUnansweredButton.textContent = `Lanjut ke Soal Belum Dikerjakan (${nextUnansweredIndex + 1}) →`;
+                    nextUnansweredButton.onclick = () => loadQuestion(nextUnansweredIndex);
+                }
+            } else {
+                // JIKA SOAL BELUM DIJAWAB (Mode standar)
+                submitButton.classList.remove('hidden');
+                submitButton.textContent = (index === questionsData.length - 1 && nextUnansweredIndex === index) ? 'Selesai & Lihat Hasil' : 'Pilih Jawaban';
+                submitButton.onclick = null; // Akan diatur di selectAnswer
+                submitButton.disabled = true; 
+
+                nextUnansweredButton.classList.add('hidden');
+            }
         }
 
         function selectAnswer(qIndex, selectedOption, selectedButton) {
             // Hapus status 'selected' dari semua opsi
             Array.from(optionsArea.children).forEach(btn => {
                 btn.classList.remove('selected-option');
-                btn.disabled = false; // Re-enable if needed for changing selection
+                // Tombol harus tetap aktif sampai disubmit
             });
 
             // Set status 'selected' pada tombol yang baru dipilih
@@ -542,12 +583,14 @@
                     <p class="text-base">${feedback}</p>`; // Penjelasan rinci untuk jawaban salah
             }
 
-            // Atur tombol Lanjut Soal Berikutnya
-            if (currentQuestionIndex < questionsData.length - 1) {
-                nextQButton.textContent = 'Lanjut Soal Berikutnya';
+            const nextUnansweredIndex = findNextUnansweredQuestionIndex();
+
+            // Atur tombol Lanjut Soal Berikutnya/Selesai
+            if (nextUnansweredIndex !== -1) {
+                nextQButton.textContent = 'Lanjut ke Soal Berikutnya →';
                 nextQButton.onclick = () => {
                     feedbackModal.classList.add('hidden');
-                    loadQuestion(currentQuestionIndex + 1);
+                    loadQuestion(nextUnansweredIndex); // Langsung ke soal yang belum dijawab
                 };
             } else {
                 nextQButton.textContent = 'Selesai & Lihat Hasil';
